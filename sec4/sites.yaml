@@ -1,0 +1,14 @@
+- url: https://www.google.com
+  acceptableCodes:
+    - 200
+  frequency: 5
+- url: https://ajizzy.com
+  acceptableCodes:
+    - 200
+    - 301
+  frequency: 10
+- url: https://www.example.com
+  acceptableCodes:
+    - 200
+    - 404
+  frequency: 6
