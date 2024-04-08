@@ -22,15 +22,14 @@ type HttpClient interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
-type DefaultHttpClient struct{}
+type DefaultClient struct{}
 
-func (c *DefaultHttpClient) Get(url string) (resp *http.Response, err error) {
+func (c *DefaultClient) Get(url string) (resp *http.Response, err error) {
 	return http.Get(url)
 }
 
 func check(config SiteConfig, client HttpClient, results chan<- Result) {
 	resp, err := client.Get(config.URL)
-
 	result := Result{
 		URL: config.URL,
 	}
@@ -42,16 +41,14 @@ func check(config SiteConfig, client HttpClient, results chan<- Result) {
 	}
 
 	defer resp.Body.Close()
-	result.Status = resp.StatusCode
 	result.Up = false
-
+	result.Status = resp.StatusCode
 	for _, code := range config.AcceptableCodes {
 		if resp.StatusCode == code {
 			result.Up = true
 			break
 		}
 	}
-
 	results <- result
 }
 
@@ -73,30 +70,24 @@ func main() {
 		{
 			URL:             "https://google.com",
 			AcceptableCodes: []int{200},
-			Frequency:       5,
+			Frequency:       1,
 		},
 
 		{
-			URL:             "https://yahoo.com",
+			URL:             "http://localhost.cs",
 			AcceptableCodes: []int{200},
-			Frequency:       6,
+			Frequency:       3,
 		},
 
 		{
 			URL:             "https://go.dev",
-			AcceptableCodes: []int{200},
-			Frequency:       7,
-		},
-
-		{
-			URL:             "https://localhost.com.me",
 			AcceptableCodes: []int{200},
 			Frequency:       2,
 		},
 	}
 
 	results := make(chan Result)
-	client := &DefaultHttpClient{}
+	client := &DefaultClient{}
 
 	for _, site := range sites {
 		scheduleCheck(site, client, results)
@@ -104,9 +95,12 @@ func main() {
 
 	for result := range results {
 		if result.Up {
-			fmt.Printf("%s is up (Status code: %d)\n", result.URL, result.Status)
+			fmt.Printf("%s is up with status code of %d\n",
+				result.URL, result.Status)
 		} else {
-			fmt.Printf("%s is down (Status code: %d)\n", result.URL, result.Status)
+			fmt.Printf("%s is down with status code of %d\n",
+				result.URL, result.Status)
 		}
 	}
+
 }
